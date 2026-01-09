@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>認識彼此小遊戲｜點選抽問題</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --card:#0f1630;
+      --text:#e8ecff;
+      --muted:#a7b0d6;
+      --accent:#7aa2ff;
+      --accent2:#7ef0c3;
+      --danger:#ff6b8b;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+      --radius:18px;
+      --font: ui-sans-serif, system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(1200px 900px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 700px at 85% 25%, rgba(126,240,195,.12), transparent 55%),
+                  radial-gradient(1000px 800px at 40% 90%, rgba(255,107,139,.10), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+    }
+    .app{
+      width:min(920px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:18px 18px 12px;
+      background: rgba(0,0,0,.15);
+      border-bottom:1px solid var(--border);
+      display:flex;
+      gap:14px;
+      align-items:flex-end;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+    }
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    select, button, input{
+      font-family:inherit;
+    }
+    select, input{
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input::placeholder{color:rgba(232,236,255,.45)}
+    button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+    }
+    button:hover{ background: rgba(255,255,255,.10); border-color:rgba(255,255,255,.18); }
+    button:active{ transform: translateY(1px) scale(.99); }
+    .primary{
+      background: linear-gradient(90deg, rgba(122,162,255,.35), rgba(122,162,255,.18));
+      border-color: rgba(122,162,255,.45);
+    }
+    .primary:hover{ background: linear-gradient(90deg, rgba(122,162,255,.42), rgba(122,162,255,.22)); }
+    .danger{
+      background: rgba(255,107,139,.12);
+      border-color: rgba(255,107,139,.35);
+      color: #ffd9e1;
+    }
+    .danger:hover{ background: rgba(255,107,139,.18); }
+    main{
+      padding:18px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+    }
+    @media (max-width: 860px){
+      main{ grid-template-columns:1fr; }
+    }
+    .card{
+      background: rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+    }
+    .bigcard{
+      min-height: 330px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .badgeRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.18);
+    }
+    .turn{
+      display:flex; gap:8px; align-items:center;
+    }
+    .turn b{ color: var(--accent2); }
+    .qwrap{
+      flex:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:12px 6px;
+    }
+    .question{
+      text-align:center;
+      font-size:26px;
+      line-height:1.35;
+      letter-spacing:.2px;
+      margin:0;
+      padding: 6px 8px;
+      max-width: 24ch;
+    }
+    .hint{
+      text-align:center;
+      color: var(--muted);
+      font-size:13px;
+      margin-top:-4px;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .side{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .listHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .listHead h2{
+      margin:0;
+      font-size:14px;
+      color: var(--muted);
+      letter-spacing:.3px;
+      font-weight:700;
+    }
+    .pill{
+      font-size:12px;
+      color: var(--muted);
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.04);
+      white-space:nowrap;
+    }
+    .favList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height: 280px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .favItem{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.04);
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .favItem p{
+      margin:0;
+      font-size:13px;
+      color: var(--text);
+      line-height:1.35;
+    }
+    .favItem small{
+      display:block;
+      margin-top:4px;
+      color: var(--muted);
+      font-size:11px;
+    }
+    .iconBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      font-weight:800;
+      line-height:1;
+    }
+    .footerTips{
+      margin-top:10px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      padding:2px 6px;
+      border-radius:8px;
+      font-size:11px;
+      color: var(--text);
+      display:inline-block;
+      margin:0 2px;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background: rgba(18,26,51,.92);
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius: 14px;
+      color: var(--text);
+      font-size:13px;
+      box-shadow: var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(-4px);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="認識彼此小遊戲">
+    <header>
+      <div class="title">
+        <h1>認識彼此小遊戲｜點一下抽問題</h1>
+        <div class="sub">輕鬆表層問題：吃什麼、看什麼、喜歡什麼。適合兩個人輪流回答。</div>
+      </div>
+
+      <div class="controls">
+        <select id="category">
+          <option value="all">全部分類</option>
+        </select>
+
+        <input id="search" type="text" placeholder="搜尋關鍵字（例：飲料、電影）" />
+
+        <button id="shuffleBtn" title="洗牌題庫">🔀 洗牌</button>
+        <button id="resetBtn" class="danger" title="清除紀錄（包含收藏）">🧹 清除</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card bigcard">
+        <div class="badgeRow">
+          <div class="badge"><span class="dot"></span><span id="catBadge">全部</span></div>
+          <div class="badge turn">輪到：<b id="turnName">A</b>（點「下一題」會自動換人）</div>
+          <div class="badge">進度：<span id="progress">0</span></div>
+        </div>
+
+        <div class="qwrap">
+          <div>
+            <p class="question" id="question">點「下一題」開始抽問題 🎲</p>
+            <div class="hint" id="hint">小技巧：輪流回答＋順便追問一句「為什麼？」會更好玩。</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="nextBtn">👉 下一題</button>
+          <button id="favBtn">⭐ 收藏這題</button>
+          <button id="repeatBtn" title="不換題，再顯示一次（適合重複問）">🔁 重問</button>
+        </div>
+
+        <div class="footerTips">
+          快捷鍵：<span class="kbd">Space</span> 下一題、<span class="kbd">F</span> 收藏、<span class="kbd">R</span> 重問
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="card">
+          <div class="listHead">
+            <h2>⭐ 收藏清單</h2>
+            <span class="pill"><span id="favCount">0</span> 題</span>
+          </div>
+          <div class="favList" id="favList"></div>
+          <div class="footerTips">
+            收藏是存在你這台裝置的瀏覽器（localStorage）。你們要共用手機玩最方便。
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="listHead">
+            <h2>玩法（超簡單）</h2>
+            <span class="pill">2 人模式</span>
+          </div>
+          <div class="footerTips">
+            1) 點「下一題」抽問題<br/>
+            2) A 先回答 → B 回答（或反過來）<br/>
+            3) 覺得有趣就按「收藏」留著以後再聊
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  // ===== 題庫：表層日常問題 =====
+  const QUESTIONS = [
+    // 飲食
+    {c:"飲食", q:"你最喜歡的早餐是什麼？"},
+    {c:"飲食", q:"你最常點的飲料是哪一杯？"},
+    {c:"飲食", q:"你敢吃辣嗎？大概幾分辣？"},
+    {c:"飲食", q:"你是甜食派還是鹹食派？"},
+    {c:"飲食", q:"你最愛的宵夜是什麼？"},
+    {c:"飲食", q:"你最不能接受的食物是什麼？"},
+    {c:"飲食", q:"火鍋你最愛先下什麼？"},
+    {c:"飲食", q:"夜市你一定會買什麼？"},
+    {c:"飲食", q:"咖啡派還是茶派？"},
+    {c:"飲食", q:"飲料甜度你通常點多少？"},
+    {c:"飲食", q:"你會為了美食排隊嗎？"},
+    {c:"飲食", q:"你最喜歡的甜點是什麼？"},
+    {c:"飲食", q:"你喜歡吃飯快快吃還是慢慢吃？"},
+    {c:"飲食", q:"你最常吃的便當／主食是什麼？"},
+    {c:"飲食", q:"你喜歡吃麵還是飯？"},
+    {c:"飲食", q:"你有沒有一個「必吃」的口袋名單？"},
+    {c:"飲食", q:"你最愛的水果是什麼？"},
+    {c:"飲食", q:"你喜歡湯湯水水還是乾的料理？"},
+    {c:"飲食", q:"你會嘗試新餐廳嗎？還是固定幾家？"},
+    {c:"飲食", q:"你最喜歡的調味料／醬料是什麼？"},
+
+    // 娛樂
+    {c:"娛樂", q:"你最近在追哪一部劇？"},
+    {c:"娛樂", q:"你比較喜歡電影還是影集？"},
+    {c:"娛樂", q:"你最常聽的音樂類型是什麼？"},
+    {c:"娛樂", q:"有沒有一首歌你永遠不會聽膩？"},
+    {c:"娛樂", q:"你喜歡看 YouTube 嗎？最常看什麼？"},
+    {c:"娛樂", q:"你會看動漫嗎？最喜歡哪一部？"},
+    {c:"娛樂", q:"你平常會玩遊戲嗎？手機／電腦？"},
+    {c:"娛樂", q:"你喜歡喜劇還是比較感人的片？"},
+    {c:"娛樂", q:"你最常用的社群 app 是哪個？"},
+    {c:"娛樂", q:"你會追星嗎？最近喜歡誰？"},
+    {c:"娛樂", q:"你有沒有「一直重看」的作品？"},
+    {c:"娛樂", q:"你喜歡看展覽／演唱會嗎？"},
+    {c:"娛樂", q:"你喜歡看短影片嗎？還是會覺得太快？"},
+    {c:"娛樂", q:"你最常聽歌用哪個平台？"},
+    {c:"娛樂", q:"你喜歡看恐怖片嗎？"},
+    {c:"娛樂", q:"你最近有被什麼事情逗笑嗎？"},
+    {c:"娛樂", q:"你喜歡聽 Podcast 嗎？類型？"},
+    {c:"娛樂", q:"你比較喜歡在家看還是去電影院？"},
+    {c:"娛樂", q:"你最常追的內容類型：美食／旅遊／開箱／知識／搞笑？"},
+    {c:"娛樂", q:"你喜歡拍照嗎？拍什麼最多？"},
+
+    // 生活習慣
+    {c:"習慣", q:"你是早起派還是夜貓派？"},
+    {c:"習慣", q:"出門你會提早還是壓線？"},
+    {c:"習慣", q:"你手機電量剩多少會開始焦慮？"},
+    {c:"習慣", q:"你出門一定會帶的三樣東西是什麼？"},
+    {c:"習慣", q:"你洗澡習慣早上還是晚上？"},
+    {c:"習慣", q:"你睡覺一定要關燈嗎？"},
+    {c:"習慣", q:"你起床會賴床嗎？"},
+    {c:"習慣", q:"你是桌面整齊派還是隨性派？"},
+    {c:"習慣", q:"你比較怕熱還是怕冷？"},
+    {c:"習慣", q:"你喜歡香香的味道嗎？喜歡哪種？"},
+    {c:"習慣", q:"你會看天氣預報嗎？"},
+    {c:"習慣", q:"你平常走路快還是慢？"},
+    {c:"習慣", q:"你比較喜歡晴天還是雨天？"},
+    {c:"習慣", q:"你會用備忘錄嗎？記什麼？"},
+    {c:"習慣", q:"你手機桌布是什麼？"},
+    {c:"習慣", q:"你喜歡在家待著還是常出門？"},
+    {c:"習慣", q:"你喝水多嗎？會記得補水嗎？"},
+    {c:"習慣", q:"你有固定的放鬆儀式嗎？"},
+    {c:"習慣", q:"你比較喜歡冷氣很冷還是剛好？"},
+    {c:"習慣", q:"你喜歡睡前滑手機嗎？"},
+
+    // 穿搭＆小物
+    {c:"穿搭", q:"你平常穿搭偏什麼風格？"},
+    {c:"穿搭", q:"你最常穿的顏色是什麼？"},
+    {c:"穿搭", q:"你喜歡球鞋還是靴子／皮鞋？"},
+    {c:"穿搭", q:"你有沒有很常戴的配件（手錶、戒指、帽子）？"},
+    {c:"穿搭", q:"你出門會花很多時間選衣服嗎？"},
+    {c:"穿搭", q:"你喜歡香水嗎？偏哪一種味道？"},
+    {c:"穿搭", q:"你會在意髮型嗎？"},
+    {c:"穿搭", q:"你覺得哪個單品最百搭？"},
+    {c:"穿搭", q:"你比較喜歡簡單風還是亮眼風？"},
+    {c:"穿搭", q:"你有沒有「很愛用」的小物？（保溫杯、耳機等）"},
+
+    // 旅行＆出遊（表層）
+    {c:"出遊", q:"你喜歡一日遊還是過夜？"},
+    {c:"出遊", q:"出遊你比較愛拍照還是看風景？"},
+    {c:"出遊", q:"你旅遊行程喜歡排很滿還是很鬆？"},
+    {c:"出遊", q:"你比較喜歡海邊、山上、還是城市？"},
+    {c:"出遊", q:"你出遊最怕遇到什麼？（塞車／下雨／人多）"},
+    {c:"出遊", q:"你是方向感好的人嗎？"},
+    {c:"出遊", q:"搭車你會睡覺嗎？"},
+    {c:"出遊", q:"你喜歡靠窗位還是走道位？"},
+    {c:"出遊", q:"你會買紀念品嗎？通常買什麼？"},
+    {c:"出遊", q:"你最想去的一個地方是哪裡？"},
+
+    // 隨口聊
+    {c:"隨口聊", q:"你最近有沒有吃到什麼好吃的？"},
+    {c:"隨口聊", q:"你今天心情大概幾分（1–10）？"},
+    {c:"隨口聊", q:"你最近在期待什麼事情？"},
+    {c:"隨口聊", q:"你現在最想做的一件小事是什麼？"},
+    {c:"隨口聊", q:"你比較喜歡白天還是夜晚？"},
+    {c:"隨口聊", q:"你有沒有一個常去的地方？"},
+    {c:"隨口聊", q:"你會因為天氣影響心情嗎？"},
+    {c:"隨口聊", q:"你最近有沒有想買的東西？"},
+    {c:"隨口聊", q:"你喜歡熱鬧還是安靜？"},
+    {c:"隨口聊", q:"如果現在放假，你最想幹嘛？"},
+  ];
+
+  // ===== 狀態 =====
+  const LS_KEY = "get-to-know-game-v1";
+  const state = loadState() ?? {
+    turn: "A",
+    seen: [],     // indices
+    favs: [],     // {c,q}
+    lastIndex: null,
+    category: "all",
+    search: ""
+  };
+
+  // ===== DOM =====
+  const elCategory = document.getElementById("category");
+  const elSearch   = document.getElementById("search");
+  const elNext     = document.getElementById("nextBtn");
+  const elRepeat   = document.getElementById("repeatBtn");
+  const elFav      = document.getElementById("favBtn");
+  const elShuffle  = document.getElementById("shuffleBtn");
+  const elReset    = document.getElementById("resetBtn");
+  const elQ        = document.getElementById("question");
+  const elCatBadge = document.getElementById("catBadge");
+  const elTurnName = document.getElementById("turnName");
+  const elProgress = document.getElementById("progress");
+  const elFavList  = document.getElementById("favList");
+  const elFavCount = document.getElementById("favCount");
+  const elToast    = document.getElementById("toast");
+
+  // ===== 初始化 UI =====
+  const categories = Array.from(new Set(QUESTIONS.map(x => x.c)));
+  categories.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    elCategory.appendChild(opt);
+  });
+
+  elCategory.value = state.category;
+  elSearch.value = state.search;
+
+  renderMeta();
+  renderFavs();
+
+  // 若之前有抽過，重顯示最後一題
+  if (state.lastIndex !== null && QUESTIONS[state.lastIndex]) {
+    const item = QUESTIONS[state.lastIndex];
+    elQ.textContent = item.q;
+    elCatBadge.textContent = state.category === "all" ? "全部" : state.category;
+  }
+
+  // ===== 事件 =====
+  elCategory.addEventListener("change", () => {
+    state.category = elCategory.value;
+    state.seen = [];
+    state.lastIndex = null;
+    saveState();
+    renderMeta();
+    toast("已切換分類並重置進度");
+  });
+
+  elSearch.addEventListener("input", () => {
+    state.search = elSearch.value.trim();
+    state.seen = [];
+    state.lastIndex = null;
+    saveState();
+    renderMeta();
+  });
+
+  elNext.addEventListener("click", () => nextQuestion());
+  elRepeat.addEventListener("click", () => repeatQuestion());
+  elFav.addEventListener("click", () => addFavorite());
+  elShuffle.addEventListener("click", () => {
+    state.seen = [];
+    state.lastIndex = null;
+    saveState();
+    toast("已洗牌（重置抽題順序）");
+    nextQuestion();
+  });
+  elReset.addEventListener("click", () => {
+    if (!confirm("確定要清除進度與收藏嗎？")) return;
+    localStorage.removeItem(LS_KEY);
+    location.reload();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT")) return;
+    if (e.code === "Space") { e.preventDefault(); nextQuestion(); }
+    if (e.key.toLowerCase() === "f") addFavorite();
+    if (e.key.toLowerCase() === "r") repeatQuestion();
+  });
+
+  // ===== 核心功能 =====
+  function getPool(){
+    const cat = state.category;
+    const s = (state.search || "").toLowerCase();
+
+    return QUESTIONS
+      .map((item, idx) => ({...item, idx}))
+      .filter(item => cat === "all" ? true : item.c === cat)
+      .filter(item => s ? item.q.toLowerCase().includes(s) || item.c.toLowerCase().includes(s) : true);
+  }
+
+  function nextQuestion(){
+    const pool = getPool();
+    if (pool.length === 0){
+      elQ.textContent = "找不到符合的題目 😅 你可以清空搜尋或切回「全部分類」。";
+      toast("題目池是空的");
+      return;
+    }
+
+    // 取未看過的
+    const unseen = pool.filter(x => !state.seen.includes(x.idx));
+
+    if (unseen.length === 0){
+      // 全部看過 → 重新循環
+      state.seen = [];
+      toast("這個分類題目抽完了！已自動重新開始");
+    }
+
+    const refreshedPool = getPool().filter(x => !state.seen.includes(x.idx));
+    const pick = refreshedPool[Math.floor(Math.random() * refreshedPool.length)];
+
+    state.lastIndex = pick.idx;
+    state.seen.push(pick.idx);
+
+    // 切換輪到的人
+    state.turn = (state.turn === "A") ? "B" : "A";
+
+    saveState();
+    elQ.textContent = pick.q;
+    renderMeta();
+  }
+
+  function repeatQuestion(){
+    if (state.lastIndex === null){
+      toast("還沒抽題喔～先按「下一題」");
+      return;
+    }
+    const item = QUESTIONS[state.lastIndex];
+    if (!item) return;
+    elQ.textContent = item.q;
+    toast("重問同一題");
+  }
+
+  function addFavorite(){
+    if (state.lastIndex === null){
+      toast("先抽一題再收藏～");
+      return;
+    }
+    const item = QUESTIONS[state.lastIndex];
+    const exists = state.favs.some(x => x.q === item.q && x.c === item.c);
+    if (exists){
+      toast("這題已經在收藏裡了 ⭐");
+      return;
+    }
+    state.favs.unshift({c:item.c, q:item.q, at: Date.now()});
+    saveState();
+    renderFavs();
+    toast("已收藏 ⭐");
+  }
+
+  function removeFavorite(at){
+    state.favs = state.favs.filter(x => x.at !== at);
+    saveState();
+    renderFavs();
+    toast("已移除收藏");
+  }
+
+  // ===== UI render =====
+  function renderMeta(){
+    const pool = getPool();
+    elTurnName.textContent = state.turn;
+    elCatBadge.textContent = state.category === "all" ? "全部" : state.category;
+    elProgress.textContent = `${Math.min(state.seen.length, pool.length)}/${pool.length}`;
+  }
+
+  function renderFavs(){
+    elFavList.innerHTML = "";
+    elFavCount.textContent = state.favs.length;
+
+    if (state.favs.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "footerTips";
+      empty.textContent = "還沒有收藏～遇到很有趣的題目就按 ⭐ 收藏！";
+      elFavList.appendChild(empty);
+      return;
+    }
+
+    state.favs.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "favItem";
+
+      const left = document.createElement("div");
+      const p = document.createElement("p");
+      p.textContent = item.q;
+      const small = document.createElement("small");
+      small.textContent = `分類：${item.c}`;
+      left.appendChild(p);
+      left.appendChild(small);
+
+      const btn = document.createElement("button");
+      btn.className = "iconBtn danger";
+      btn.textContent = "✕";
+      btn.title = "移除收藏";
+      btn.addEventListener("click", () => removeFavorite(item.at));
+
+      row.appendChild(left);
+      row.appendChild(btn);
+      elFavList.appendChild(row);
+    });
+  }
+
+  function toast(msg){
+    elToast.textContent = msg;
+    elToast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => elToast.classList.remove("show"), 1400);
+  }
+
+  function saveState(){
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+})();
+</script>
+</body>
+</html>
